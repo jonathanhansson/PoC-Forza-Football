@@ -14,3 +14,4 @@ if response.status_code == 200:
     print(data)
 else:
     print(f"Failed to fetch data. Error code: {response.status_code}")
+
