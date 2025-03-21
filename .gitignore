@@ -1,0 +1,43 @@
+# Python-kompilerade filer
+__pycache__/
+*.py[cod]
+*.so
+
+# Miljöfiler
+.env
+*.env
+config.json
+
+# Virtuell miljö
+venv/
+.venv/
+
+# ML/AI-modeller och checkpoints
+*.h5
+*.pkl
+*.joblib
+*.pt
+*.onnx
+
+# Datafiler
+data/
+datasets/
+*.csv
+*.json
+*.xlsx
+*.db
+*.sqlite
+*.parquet
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Loggar och tempfiler
+logs/
+*.log
+*.tmp
+.DS_Store
+
+# IDE-specifika filer
+.vscode/
+.idea/
