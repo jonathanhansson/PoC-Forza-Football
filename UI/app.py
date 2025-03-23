@@ -13,7 +13,3 @@ dataframes = data_loader.process_data()
 for filename, df in dataframes.items():
     print(f"Förhandsvisning av {filename}:")
     st.write(df.head(), "\n")
-
-
-
-
