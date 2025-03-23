@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 class PlayerRating:
     def __init__(self, standard_stats_path, passing_stats_path, goal_shot_stats_path, defensive_stats_path):
@@ -30,29 +31,31 @@ class PlayerRating:
 
         self.df = df_merged
 
-    def clean_and_standardize(self):
-        cols = ["NonPenaltyGoalsPer90", "YelloCards", "ProgressiveCarries", "ProgressivePasses", "Min", "Goals", "Assists", "Cmp%", "GCA90", "SCA90", "Total_Tackles", "Tackles_Won", "Interceptions", "Tackles_Def_3rd", "Tackles_mid_3rd"]
-        for col in cols:
-            self.df[col] = pd.to_numeric(self.df[col], errors="coerce")
+    # def clean_and_standardize(self):
+    #     cols = ["NonPenaltyGoalsPer90", "YelloCards", "ProgressiveCarries", "ProgressivePasses", "Min", "Goals", "Assists", "Cmp%", "GCA90", "SCA90", "Total_Tackles", "Tackles_Won", "Interceptions", "Tackles_Def_3rd", "Tackles_mid_3rd"]
+    #     for col in cols:
+    #         self.df[col] = pd.to_numeric(self.df[col], errors="coerce")
 
-        self.df["Tackle%"] = self.df["Tackles_Won"] / self.df["Total_Tackles"]
-        self.df["Goals_90"] = self.df["Goals"] / 90
-        self.df["Assists_90"] = self.df["Assists"] / 90
-        self.df["Player"] = self.df["Key"].str[10:]
+    #     self.df["Tackle%"] = self.df["Tackles_Won"] / self.df["Total_Tackles"]
+    #     self.df["Goals_90"] = self.df["Goals"] / 90
+    #     self.df["Assists_90"] = self.df["Assists"] / 90
+    #     self.df["Player"] = self.df["Key"].str[10:]
 
-        for col in ["NonPenaltyGoalsPer90", "YelloCards", "ProgressiveCarries", "ProgressivePasses", "Min", "Cmp%", "GCA90", "SCA90", "Total_Tackles", "Tackles_Won", "Interceptions", "Tackles_Def_3rd", "Tackles_mid_3rd", "Goals_90", "Assists_90", "Tackle%"]:
-            self.df[f"{col}_z"] = (self.df[col] - self.df[col].mean()) / self.df[col].std()
+    #     for col in ["NonPenaltyGoalsPer90", "YelloCards", "ProgressiveCarries", "ProgressivePasses", "Min", "Cmp%", "GCA90", "SCA90", "Total_Tackles", "Tackles_Won", "Interceptions", "Tackles_Def_3rd", "Tackles_mid_3rd", "Goals_90", "Assists_90", "Tackle%"]:
+    #         self.df[f"{col}_z"] = (self.df[col] - self.df[col].mean()) / self.df[col].std()
 
     def calculate_player_ratings(self):
+        import numpy as np
+        # Beräkna basala ratingen med viktade z-värden
         self.df["PlayerRating"] = (
-            0.2 * self.df["Goals_90_z"] +
-            0.2 * self.df["Assists_90_z"] +
-            0.14 * self.df["GCA90_z"] +
-            0.1 * self.df["SCA90_z"] +
-            0.06 * self.df["ProgressiveCarries_z"] +
-            0.06 * self.df["ProgressivePasses_z"] +
-            0.05 * self.df["Cmp%_z"] +
-            0.03 * self.df["Min_z"] +
+            0.24 * self.df["Goals_90_z"] +
+            0.24 * self.df["Assists_90_z"] +
+            0.13 * self.df["GCA90_z"] +
+            0.1  * self.df["SCA90_z"] +
+            0.04 * self.df["ProgressiveCarries_z"] +
+            0.04 * self.df["ProgressivePasses_z"] +
+            0.03 * self.df["Cmp%_z"] +
+            0.02 * self.df["Min_z"] +
             0.02 * self.df["Tackle%_z"] +
             0.02 * self.df["Interceptions_z"] +
             0.01 * self.df["Tackles_Def_3rd"] +
@@ -60,18 +63,23 @@ class PlayerRating:
             (-0.02) * self.df["YelloCards"]
         )
 
+        # Mappa ligor till deras rating
         league_map = {
             'EPL': 1, 'LaLiga': 0.99, 'Bundesliga': 0.95, 'SerieA': 0.95,
             'Ligue1': 0.93, 'EreDivisie': 0.88, 'PrimeiraLiga': 0.88
         }
-
         self.df['LeagueRating'] = self.df['League'].map(league_map)
 
-        min_rating = self.df["PlayerRating"].min()
-        max_rating = self.df["PlayerRating"].max()
+        # Använd 10:e och 90:e percentil för en tightare spridning av betygen
+        p10 = self.df["PlayerRating"].quantile(0.1)
+        p90 = self.df["PlayerRating"].quantile(0.9)
+        self.df["PlayerRating_1_10"] = 1 + 9 * (self.df["PlayerRating"] - p10) / (p90 - p10)
+        # Se till att betygen ligger mellan 1 och 10
+        self.df["PlayerRating_1_10"] = self.df["PlayerRating_1_10"].clip(lower=1, upper=10)
 
-        self.df["PlayerRating_1_10"] = 0.9764 + 9 * (self.df["PlayerRating"] - min_rating) / (max_rating - min_rating)
+        # Slutgiltigt, justerat betyg multiplicerat med LeagueRating
         self.df["PlayerRatingActual"] = self.df["PlayerRating_1_10"] * self.df["LeagueRating"]
+
 
     def get_top_players(self, top_n=10):
         return self.df[["Player", "PlayerRatingActual", "Season"]].sort_values(by="PlayerRatingActual", ascending=False).dropna().head(top_n)
