@@ -12,7 +12,7 @@ dataframes = data_loader.process_data()
 
 for filename, df in dataframes.items():
     print(f"Förhandsvisning av {filename}:")
-    print(df.head(10), "\n")
+    st.write(df.head(), "\n")
 
 
 
