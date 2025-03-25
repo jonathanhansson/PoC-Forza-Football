@@ -11,22 +11,20 @@ class PlayerPrediction:
     def prepare_data(self):
         # Definiera features (X) och target (y)
         features = [
-            "Goals_90_z", "Assists_90_z", "GCA90_z", "SCA90_z", "ProgressiveCarries_z",
-            "ProgressivePasses_z", "Cmp%_z", "Min_z", "Tackle%_z", "Interceptions_z",
-            "Tackles_Def_3rd", "Tackles_mid_3rd", "YelloCards"
+            "GoalsPer90", "YelloCards", "AssistPer90", "NonPenaltyGoalsPer90", "GoalsandAssistPer90", "ProgressiveCarries", "ProgressivePasses", "Cmp%", "PrgDist", "GCA90", "SCA90", "Total_Tackles", "Tackles_Won", "Interceptions", "Tackles_Def_3rd", "Tackles_mid_3rd", "Shots_Blocked", "Save%", "GA90", "CS%", "W", "GoalsPerShotOnTarget"
         ]
         
         X = self.df[features]  # Funktioner (X)
-        y = self.df["PlayerRatingActual"]  # Target (y)
+        y = self.df["PositionWeightedRating_1_10"]  # Target (y)
 
         combined = pd.concat([X, y], axis=1)
-        combined = combined.dropna(subset=["PlayerRatingActual"])
+        combined = combined.dropna(subset=["PositionWeightedRating_1_10"])
 
         X_clean = combined[features]
-        y_clean = combined["PlayerRatingActual"]
+        y_clean = combined["PositionWeightedRating_1_10"]
 
         # Dela upp i tränings- och testdata
-        X_train, X_test, y_train, y_test = train_test_split(X_clean, y_clean, test_size=0.3, random_state=42)
+        X_train, X_test, y_train, y_test = train_test_split(X_clean, y_clean, test_size=0.15, random_state=42)
 
         return X_train, X_test, y_train, y_test
 
@@ -69,4 +67,4 @@ if __name__ == "__main__":
     player_names = X_test.index
 
     predictions_with_index = pd.DataFrame({"Player": player_names, "Player rating": y_pred})
-    print(predictions_with_index.head(30).sort_values(by="Player rating", ascending=False))     
+    print(predictions_with_index.head(30).sort_values(by="Player rating", ascending=False))
