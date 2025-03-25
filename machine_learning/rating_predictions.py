@@ -1,7 +1,7 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 class PlayerPrediction:
     def __init__(self, data_path):
@@ -30,7 +30,7 @@ class PlayerPrediction:
 
     def train_model(self, X_train, y_train):
         # Träna en Random Forest Regressor-modell
-        model = RandomForestRegressor(n_estimators=100, random_state=42)
+        model = RandomForestRegressor(n_estimators=350, max_depth=20, random_state=42)
         model.fit(X_train, y_train)
         return model
 
@@ -40,12 +40,14 @@ class PlayerPrediction:
 
         # Beräkna MSE (Mean Squared Error) och R² (R-squared)
         mse = mean_squared_error(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
         r2 = r2_score(y_test, y_pred)
 
         print(f"Mean Squared Error: {mse}")
+        print(f"Mean Absolute Error: {mae}")
         print(f"R²: {r2}")
 
-        return y_pred
+        return y_pred, mse, mae, r2
 
 if __name__ == "__main__":
     # Här ser vi till att filvägen stämmer för CSV-filen med spelardata
@@ -58,7 +60,7 @@ if __name__ == "__main__":
     model = prediction.train_model(X_train, y_train)
 
     # Utvärdera modellen
-    y_pred = prediction.evaluate_model(model, X_test, y_test)
+    y_pred, mse, mae, r2 = prediction.evaluate_model(model, X_test, y_test)
 
     # Om du vill skriva ut de första prediktionerna
     print("Predictions on Test Data:")
