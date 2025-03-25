@@ -41,11 +41,11 @@ class PlayerRating:
     league_ratings = {
     "Premier League": 1,
     "La Liga": 1,
-    "Serie A": 0.96,
-    "Bundesliga": 0.96,
-    "Ligue 1": 0.93,
-    "EreDivisie": 0.90,
-    "PrimeiraLiga": 0.92
+    "Serie A": 0.97,
+    "Bundesliga": 0.97,
+    "Ligue 1": 0.96,
+    "EreDivisie": 0.94,
+    "PrimeiraLiga": 0.94
     }   
         
     
@@ -212,7 +212,6 @@ if __name__ == "__main__":
     player_rating.clean_and_standardize()
     player_rating.calculate_player_ratings()
 
-    player_rating.save_to_csv("Players.csv")
+    player_rating.save_to_csv("../Players.csv")
     top_players = player_rating.df.nlargest(20, "PositionWeightedRating")
     print(top_players[["Player", "Pos", "PositionWeightedRating", "Season"]])
-
