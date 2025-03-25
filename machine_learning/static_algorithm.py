@@ -29,8 +29,8 @@ class PlayerRating:
             "AssistPer90_z": 0.05      # Assist per 90 (mindre vikt)
         },
         "FW": {  # Anfallare
-            "NonPenaltyGoalsPer90_z": 0.30, # Mål per 90 utan straff
-            "GCA90_z": 0.30,                # Målchansskapande
+            "NonPenaltyGoalsPer90_z": 0.25, # Mål per 90 utan straff
+            "GCA90_z": 0.25,                # Målchansskapande
             "ProgressiveCarries_90_z": 0.2,
             "GoalsandAssistPer90_z": 0.10,  # Kombinerat mål- och assistbidrag
             "GoalsPerShotOnTarget_z": 0.10  # Skottprecision
@@ -138,8 +138,8 @@ class PlayerRating:
             axis=1
         )
         self.df["LeagueMultiplier"] = self.df["League"].map(self.league_ratings).fillna(1.0)    
-        self.df["PositionWeightedRating"] *= self.df["LeagueMultiplier"]
         self.scale_ratings("PositionWeightedRating")
+        self.df["PositionWeightedRating"] *= self.df["LeagueMultiplier"]
         self.df["PositionWeightedRating"] = self.df["PositionWeightedRating_1_10"]
         
     def calculate_single_rating(self, row):
