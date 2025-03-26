@@ -1,19 +1,21 @@
 import matplotlib.pyplot as plt
 import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
+import pandas as pd
 from streamlit_timeline import st_timeline
 import datetime
 import time 
-import pandas as pd
 import sys
 import os
 import random
 import pkg_resources
 from PIL import Image
+from lime.lime_tabular import LimeTabularExplainer
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../data_handler")))
 from data_loader import DataLoader
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../machine_learning")))
-from rating_predictions import PlayerPrediction
+from rating_predictions import PlayerPrediction 
 st.set_page_config(page_title="Forza Football AI", page_icon=":soccer:", layout="wide")
 
 # zip_folder_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data"))
@@ -24,6 +26,20 @@ st.set_page_config(page_title="Forza Football AI", page_icon=":soccer:", layout=
 # for filename, df in dataframes.items():
 #     print(f"Förhandsvisning av {filename}:")
 #     st.write(df.head(), "\n")
+
+def explain_with_lime(model, X_train, X_test, instance_index):
+    explainer = LimeTabularExplainer(
+        X_train.values,
+        feature_names=X_train.columns.tolist(),
+        mode="regression",
+        verbose=True
+    )
+    exp = explainer.explain_instance(
+        X_test.iloc[instance_index].values,
+        model.predict,
+        num_features=10
+    )
+    return exp
 
 @st.cache_data
 def load_predictions():
@@ -36,21 +52,55 @@ def load_predictions():
 
 @st.cache_data
 def plot_graph(y_test, y_pred):
-    plt.figure(figsize=(10, 6))
+    # Skapa scatterplot
+    fig = px.scatter(
+        x=y_test,
+        y=y_pred,
+        labels={'x': 'Actual Rating', 'y': 'Predicted Rating'},
+        title="Actual vs Predicted Ratings",
+        width=700,
+        height=500
+    )
+    
+    # Lägg till perfekt prediktionslinje
+    fig.add_trace(
+        go.Scatter(
+            x=[1, 10],
+            y=[1, 10],
+            mode='lines',
+            name='Perfect Prediction',  # Legend-namn här
+            line=dict(color='red', dash='dash')
+        )
+    )
+    
+    # Uppdatera layout för tydlig legend
+    fig.update_layout(
+        legend=dict(
+            orientation="h",  # Horisontell legend
+            yanchor="bottom",
+            y=1.02,          # Placera ovanför plotten
+            xanchor="right",
+            x=1
+        )
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+# def plot_graph(y_test, y_pred):
+#     plt.figure(figsize=(10, 6))
 
-    plt.scatter(y_test, y_pred, color="blue", alpha=0.5, label="Predicted values")
-    plt.plot([y_test.min(), y_test.max()], [y_pred.min(), y_pred.max()], color="red", linestyle="-", label="The perfect prediction line")
+#     plt.scatter(y_test, y_pred, color="blue", alpha=0.5, label="Predicted values")
+#     plt.plot([y_test.min(), y_test.max()], [y_pred.min(), y_pred.max()], color="red", linestyle="-", label="The perfect prediction line")
 
-    plt.legend()
+#     plt.legend()
 
-    plt.xlim(1, 10)
-    plt.ylim(1, 10)
+#     plt.xlim(1, 10)
+#     plt.ylim(1, 10)
 
-    plt.title("Comparison of Actual vs Predicted Player Ratings")
-    plt.xlabel("Actual Player Rating")
-    plt.ylabel("Predicted Player Rating")
+#     plt.title("Comparison of Actual vs Predicted Player Ratings")
+#     plt.xlabel("Actual Player Rating")
+#     plt.ylabel("Predicted Player Rating")
 
-    st.pyplot(plt)
+#     st.pyplot(plt, clear_figure=True)
 
 @st.cache_data
 def load_and_filter_data():
@@ -60,7 +110,7 @@ def load_and_filter_data():
 
 def main():
     df = load_and_filter_data()
-    
+    y_train, y_pred, mse, mae, r2 = load_predictions()
    
     with st.sidebar:
         st.title("⚙️ Kontrollpanel")  # Titel med emoji
@@ -68,7 +118,7 @@ def main():
         # Välj sida (om du har flera sidor)
         selected_page = st.radio(
             "Meny",
-            ["Hem", "Roadmap", "Data", "Modell", "Inställningar"],
+            ["Hem", "Roadmap", "Data", "Modell", "Pipeline", "Inställningar"],
             index=0
         )
         
@@ -90,12 +140,14 @@ def main():
         with col2:
             st.title("Forza AI Hub")
             st.markdown("""
-            *🤖 Powered by Machine Learning*
+            *🤖 Utvecklad med Machine Learning*
                         
-            *🌳 Trained with random forest regression*
+            *🌳 Tränad med random forest regression*
                         
-            *⚽ Could improve further with Forza API data*
+            *⚽ Skulle kunna vidareutvecklas med Forza API data*
     """)
+        
+          
     if selected_page == "Roadmap":
     # Initiera status om den inte finns
         if 'roadmap_status' not in st.session_state:
@@ -143,12 +195,14 @@ def main():
                 st.rerun()
 
     if selected_page == "Modell":
+        
         with st.expander("🤖 Hur presterar Forza Football AI?"):
             y_test, y_pred, mse, mae, r2 = load_predictions()
             st.write(f"Mean Squared Error: {mse:.2f}")
             st.write(f"Mean Absolute Error: {mae:.2f}")
             st.write(f"R²: {r2:.2f}")
-            plot_graph(y_test, y_pred)
+            with st.container():
+                plot_graph(y_test, y_pred)
 
 
         with st.expander("🌳 Hur funkar Random Forest?"):
@@ -201,8 +255,52 @@ def main():
                         st.write("Jag ger Messi betyget 10 eftersom han gjorde 51 mål på 50 matcher och vann Ballon d'Or.")
 
     if selected_page == "Data":
+        file_path = "../extracted_data/Cleaned_Standard_stats.csv"
+        df_raw = pd.read_csv(file_path)
+
         with st.expander("✍️ Cleanad tabell (kraftigt minimerad)"):
             st.dataframe(df[["Team", "Player", "Season", "Pos", "PositionWeightedRating"]])
+        with st.expander("✍️ En av original dataseten"):
+            st.dataframe(df_raw)
+
+    if selected_page == "Pipeline":
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            with st.expander("🚀 Hela ML-pipelinen (från data till prediktion)"):
+                st.markdown("""
+                ### **1️⃣ Data Extraction**  
+                - Automatiserad hämtning från Forza API (simulerad i PoC)  
+                - Exempel: `Cleaned_Standard_stats.csv`  
+
+                ### **2️⃣ Data Cleaning**  
+                - Hantering av saknade värden  
+                - Position-specifika features (t.ex. `Tackle%` för försvarare)  
+
+                ### **3️⃣ Feature Engineering**  
+                - Z-scoring per position  
+                - Liga-justeringar (t.ex. Premier League ×1.0)  
+
+                ### **4️⃣ Modellträning**  
+                - Random Forest med 350 träd  
+                - MAE: **0.44** på testdata  
+
+                ### **5️⃣ Deployment**  
+                - Webbapp med Streamlit  
+                - Redo för API-integration  
+                """)
+            with col2:
+                st.graphviz_chart("""
+                digraph {
+                    node [shape=box];
+                    graph [dpi=70, size="10,8"];
+                    "Raw Data" -> "Data Cleaning";
+                    "Data Cleaning" -> "Feature Engineering";
+                    "Feature Engineering" -> "Model Training";
+                    "Model Training" -> "Web App";
+                    "Web App" -> "Forza API (nästa steg)";
+                }
+                """)
+
 
                     
      
