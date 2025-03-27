@@ -156,13 +156,12 @@ def main():
         with st.expander("🚀 12-veckors Roadmap (Klicka för att se planen)"):
             # Visa roadmap-tabellen (samma som tidigare)
             st.markdown(f"""
-            ### **🎯 Mål: Gör din PoC produktionsredo med Forzas data**  
             | Vecka | Fokus                     | Leverabler                             | Status       |
             |-------|---------------------------|----------------------------------------|--------------|
-            | 1-2   | **Data Pipeline**         | Automatiserad datainsamling från Forza | {st.session_state.roadmap_status[0]} |
-            | 3-5   | **Modelloptimering**      | MAE < 0.4, SHAP-förklaringar           | {st.session_state.roadmap_status[1]} |
-            | 6-8   | **API-Integration**       | FastAPI-endpoint för betyg             | {st.session_state.roadmap_status[2]} |
-            | 9-12  | **Användartester**        | A/B-test mot nuvarande system          | {st.session_state.roadmap_status[3]} |
+            | 1-2   | **Data Pipeline**         | Automatiserad datainsamling från datakällor | {st.session_state.roadmap_status[0]} |
+            | 3-5   | **Modelloptimering**      | Optimera modellen, SHAP-förklaringar                | {st.session_state.roadmap_status[1]} |
+            | 6-8   | **API-Integration**       | FastAPI-endpoint för betyg                  | {st.session_state.roadmap_status[2]} |
+            | 9-12  | **Användartester**        | Integrera API från OpenAI som förklara betyget för a               | {st.session_state.roadmap_status[3]} |
             """)
 
             ### --- LÄGG KNAPPARNA HÄR UNDER TABELLEN --- ###
@@ -230,7 +229,7 @@ def main():
     
 
         with st.expander("📊 Vill du betygsätta Messi säsongen 2018-2019?"):
-            user_rating = st.selectbox("Välj en rating mellan 1-10", list(range(1, 11)))
+            user_rating = st.slider("Välj en rating mellan 1-10", min_value=1, max_value=10, value=5)
 
             rating_placeholder = st.empty()
 
