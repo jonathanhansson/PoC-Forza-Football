@@ -24,6 +24,7 @@ data/
 datasets/
 *.csv
 !Players.csv
+!Cleaned_Standard_stats.csv
 *.json
 *.xlsx
 *.db
