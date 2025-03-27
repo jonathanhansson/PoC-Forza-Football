@@ -102,7 +102,7 @@ def plot_graph(y_test, y_pred):
 
 @st.cache_data
 def load_and_filter_data():
-    df = pd.read_csv("../Players.csv")
+    df = pd.read_csv("Players.csv")
     return df
 
 
