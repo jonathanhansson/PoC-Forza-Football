@@ -252,7 +252,7 @@ def main():
                         st.write("Jag ger Messi betyget 10 eftersom han gjorde 51 mål på 50 matcher och vann Ballon d'Or.")
 
     if selected_page == "Data":
-        file_path = "../extracted_data/Cleaned_Standard_stats.csv"
+        file_path = "/extracted_data/Cleaned_Standard_stats.csv"
         df_raw = pd.read_csv(file_path)
 
         with st.expander("✍️ Cleanad tabell (kraftigt minimerad)"):
