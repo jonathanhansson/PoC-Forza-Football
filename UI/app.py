@@ -8,7 +8,6 @@ import time
 import sys
 import os
 import random
-import pkg_resources
 from PIL import Image
 from lime.lime_tabular import LimeTabularExplainer
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../data_handler")))
