@@ -3,6 +3,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 import pandas as pd
+import streamlit_timeline
 from streamlit_timeline import st_timeline
 import datetime
 import time 
