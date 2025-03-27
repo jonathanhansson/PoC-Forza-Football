@@ -133,7 +133,7 @@ def main():
         col1, col2, col3, col4 = st.columns([0.25, 0.25, 0.25, 0.25])
         with col1:
             # Ladda upp Forzas logga (ersätt med din bildfil)
-            logo = Image.open("../forza.png")
+            logo = Image.open("forza.png")
             st.image(logo, width=200)
         with col2:
             st.title("Forza AI Hub")
