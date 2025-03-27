@@ -2,7 +2,7 @@ pandas
 numpy
 scikit-learn
 streamlit
-streamlit-timeline
+streamlit_timeline
 matplotlib
 lime
 plotly
